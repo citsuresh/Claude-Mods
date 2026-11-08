@@ -1,0 +1,11 @@
+{
+  "name": "claude-mods",
+  "owner": { "name": "citsuresh" },
+  "plugins": [
+    {
+      "name": "usage-bar",
+      "source": "./usage-bar",
+      "description": "Monthly spend vs limit bar with this session's cost nested inside."
+    }
+  ]
+}

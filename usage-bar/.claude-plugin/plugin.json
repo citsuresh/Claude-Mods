@@ -1,0 +1,13 @@
+{
+  "name": "usage-bar",
+  "version": "0.1.0",
+  "description": "Band above the prompt: monthly spend vs limit (blue) with this session's cost nested inside (red).",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "monthlyFile": {
+      "type": "string",
+      "title": "Monthly usage file",
+      "description": "Full path to a JSON file like {\"spent\": 36.07, \"limit\": 200, \"currency\": \"USD\", \"updatedAt\": \"2026-11-08\"}. Empty: only the session cost is shown."
+    }
+  }
+}
