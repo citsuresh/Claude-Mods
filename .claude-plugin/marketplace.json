@@ -1,11 +1,13 @@
 {
   "name": "claude-mods",
-  "owner": { "name": "citsuresh" },
+  "owner": {
+    "name": "citsuresh"
+  },
   "plugins": [
     {
       "name": "usage-bar",
       "source": "./usage-bar",
-      "description": "Monthly spend vs limit bar with this session's cost nested inside."
+      "description": "Shows cost per turn as a small bar chart, plus this chat's total for the month, above the prompt."
     }
   ]
 }
