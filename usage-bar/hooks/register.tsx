@@ -58,6 +58,8 @@ const usd = atom({ plugin: 'usage-bar', key: 'usd' } as const, null)
 const mark = atom({ plugin: 'usage-bar', key: 'mark' } as const, null)
 const turns = atom({ plugin: 'usage-bar', key: 'turns' } as const, [] as number[])
 
+// Keep in step with "version" in .claude-plugin/plugin.json (shown top right of the band).
+const VERSION = '0.5.1'
 const MAX_TURNS = 20
 const money = (n: number) => '$' + n.toFixed(2)
 
@@ -191,9 +193,12 @@ export const register: Register = on => {
     }
     return (
       <Box flexDirection="column">
-        <Box key="total" flexDirection="row" gap={1}>
-          <Text key="total-label" dimColor>Chat total this month</Text>
-          <Text key="total-amount" weight="bold">{money(session)}</Text>
+        <Box key="total" flexDirection="row" justifyContent="space-between" gap={2}>
+          <Box key="total-left" flexDirection="row" gap={1}>
+            <Text key="total-label" dimColor>Chat total this month</Text>
+            <Text key="total-amount" weight="bold">{money(session)}</Text>
+          </Box>
+          <Text key="name" dimColor>{`usage-bar v${VERSION}`}</Text>
         </Box>
         <Box key="row1" flexDirection="row" flexWrap="wrap" alignItems="center" gap={1}>
           <Text key="cap" dimColor>Cost per turn</Text>
