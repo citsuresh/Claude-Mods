@@ -1,6 +1,6 @@
 {
   "name": "usage-bar",
-  "version": "0.4.0",
-  "description": "Band above the prompt: cost per turn as a small bar chart with hover tooltips, the last turn's cost, and this chat's total for the month.",
+  "version": "0.5.0",
+  "description": "Band above the prompt: cost per turn as a small bar chart (saved across restarts) with hover tooltips, the last turn's cost, and this chat's total for the month.",
   "types": "./types/index.d.ts"
 }

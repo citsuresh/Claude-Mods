@@ -34,11 +34,11 @@ Cost per turn  ▮▮▮▮▮▮▮  Last turn $0.41
 - **Chat total this month:** this chat's cost for the current calendar month only. A chat that runs across months keeps a month baseline (in the mod's saved data), so the figure never includes earlier months. A chat first seen mid-month that started in an earlier month counts from the moment the mod first sees it.
 - Only the main chat's turns count; turns run by helper agents do not add bars.
 - Bar heights show cost, not context size. Cost per turn usually rises as a chat grows, because each turn re-reads the conversation, but it is not strict (cached context is cheaper, tool-heavy turns cost more, and a compaction turn is expensive while later turns get cheaper).
-- The chart lives in memory for the session: a reloaded or reopened chat starts with no bars. The chat total is restored.
+- Bars are saved per chat (the last 20 turn costs, as plain dollar amounts, next to the month baseline in the mod's saved data) and come back after an app restart, a plugin update or reopening the chat. Only turns recorded while the mod was running are shown, so a brand-new or never-seen chat starts with `none recorded yet`. Records for chats untouched for 90 days are removed once there are 200 or more chats saved. Nothing is sent anywhere; the saved data stays on this computer.
 - It does not show the account's monthly spend or limit: a mod cannot read those, and keeping a copy up to date by hand was not worth it. See Settings, then Usage, in the app.
 - No setup, no files to maintain and no network access.
 
-Status: tested on Claude Code engine 2.1.317 with hot reload. The hover tooltips and narrow-window wrapping are the least tested parts.
+Status: tested on Claude Code engine 2.1.317 with hot reload. The hover tooltips, narrow-window wrapping and the saved bars after a real app restart are the least tested parts.
 
 ## Updating
 

@@ -15,6 +15,9 @@ type MonthRecord = {
   lastTotal: number
 }
 
+// What is saved per chat: the month baseline plus the last turn costs (so bars survive restarts).
+type ChatRecord = MonthRecord & { turns?: number[]; updatedAt?: number }
+
 const monthKey = (ms: number): string => {
   const d = new Date(ms)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
@@ -66,12 +69,48 @@ async function refresh($: any, total: number) {
     const sessionId = await $.session.id()
     const startedAt = (await $.session.usage()).startedAt
     const key = `month:${sessionId}`
-    const prev = ((await $.store.get(key)) ?? null) as MonthRecord | null
+    const prev = ((await $.store.get(key)) ?? null) as ChatRecord | null
     const { rec, cost } = monthCost(prev, total, await $.clock.now(), startedAt)
-    if (!prev || prev.month !== rec.month || prev.baseline !== rec.baseline || prev.lastTotal !== rec.lastTotal) {
-      await $.store.set(key, rec)
+    const merged = { ...(prev ?? {}), ...rec } as ChatRecord // keep the saved turns
+    if (!prev || prev.month !== merged.month || prev.baseline !== merged.baseline || prev.lastTotal !== merged.lastTotal) {
+      await $.store.set(key, { ...merged, updatedAt: await $.clock.now() })
     }
     await update($, usd, () => cost)
+  } catch {}
+}
+
+// Save this chat's last turn costs next to its baseline.
+async function saveTurns($: any, list: number[]) {
+  try {
+    const key = `month:${await $.session.id()}`
+    const prev = ((await $.store.get(key)) ?? null) as ChatRecord | null
+    if (!prev) return // no baseline saved yet
+    const rounded = list.map(n => Math.round(n * 10000) / 10000)
+    await $.store.set(key, { ...prev, turns: rounded, updatedAt: await $.clock.now() })
+  } catch {}
+}
+
+// Bring the saved bars back when the chat starts (never overwrite with an empty list).
+async function loadTurns($: any) {
+  try {
+    const rec = ((await $.store.get(`month:${await $.session.id()}`)) ?? null) as ChatRecord | null
+    if (rec && rec.turns && rec.turns.length > 0) {
+      const saved = rec.turns.slice(-MAX_TURNS)
+      await update($, turns, () => saved)
+    }
+  } catch {}
+}
+
+// Drop records of chats not touched for 90 days, so the saved data cannot grow without limit.
+async function prune($: any) {
+  try {
+    const keys = ((await $.store.keys()) as string[]).filter(k => k.startsWith('month:'))
+    if (keys.length < 200) return
+    const cutoff = (await $.clock.now()) - 90 * 24 * 60 * 60 * 1000
+    for (const k of keys) {
+      const r = (await $.store.get(k)) as ChatRecord | null
+      if (r && typeof r.updatedAt === 'number' && r.updatedAt < cutoff) await $.store.delete(k)
+    }
   } catch {}
 }
 
@@ -104,6 +143,8 @@ export const register: Register = on => {
       await update($, mark, () => 0)
       const now = await read($, usd)
       await update($, mark, () => now ?? 0)
+      await loadTurns($)
+      await prune($)
     } catch {}
     return next(e)
   })
@@ -122,7 +163,10 @@ export const register: Register = on => {
     const before = (await read($, mark)) ?? now
     const delta = now - before
     if (delta > 0.0001) {
-      await update($, turns, list => [...list, delta].slice(-MAX_TURNS))
+      const cur = await read($, turns)
+      const nextList = [...cur, delta].slice(-MAX_TURNS)
+      await update($, turns, () => nextList)
+      await saveTurns($, nextList)
     }
     await update($, mark, () => now)
     return next(e)
@@ -142,6 +186,8 @@ export const register: Register = on => {
         const { Svg } = $.ui.resolve(e) as any
         if (Svg) chart = <Svg key="chart" source={barsSvg(list)} alt={`Cost of the last ${list.length} turns`} width={list.length * 9} height={26} isInteractive />
       }
+    } else {
+      chart = <Text key="empty" dimColor>none recorded yet</Text>
     }
     return (
       <Box flexDirection="column">
